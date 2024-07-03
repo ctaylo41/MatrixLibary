@@ -26,7 +26,7 @@ Matrix::Matrix(int n)
     }
 }
 
-Matrix::Matrix(std::vector<std::vector<double> > data)
+Matrix::Matrix(std::vector<std::vector<std::complex<double> > > data)
 {
     this->data = data;
     for (int i = 0; i < data.size(); i++)
@@ -40,12 +40,12 @@ Matrix::Matrix(std::vector<std::vector<double> > data)
     this->cols = data[0].size();
 }
 
-std::vector<std::vector<double> > Matrix::getData()
+std::vector<std::vector<std::complex<double> > > Matrix::getData()
 {
     return data;
 }
 
-double Matrix::get(int i, int j)
+std::complex<double> Matrix::get(int i, int j)
 {
     return data[i][j];
 }
@@ -115,15 +115,15 @@ Matrix Matrix::choleskyDecomp()
     {
         for (int j = 0; j <= i; j++)
         {
-            double sum = 0;
+            std::complex<double> sum = 0;
             for (int k = 0; k < j; k++)
             {
                 sum += result.data[i][k] * result.data[j][k];
             }
             if (i == j)
             {
-                double value = a.data[i][i] - sum;
-                if (value < 0)
+                std::complex<double> value = a.data[i][i] - sum;
+                if (value.real() < 0)
                 {
                     throw std::runtime_error("Matrix is not positive definite");
                 }
@@ -131,7 +131,7 @@ Matrix Matrix::choleskyDecomp()
             }
             else
             {
-                if (result.data[j][j] == 0)
+                if (result.data[j][j] == std::complex<double>(0, 0))
                 {
                     throw std::runtime_error("Division by zero encountered in Cholesky decomposition");
                 }
@@ -177,7 +177,7 @@ Matrix Matrix::backwardSolve(Matrix &b)
     {
         for (int j = 0; j < b.cols; j++)
         {
-            double sum = 0;
+            std::complex<double> sum = 0;
             for (int k = i + 1; k < a.cols; k++)
             {
                 sum += a.data[i][k] * result.data[k][j];
@@ -203,7 +203,7 @@ Matrix Matrix::forwardSolve(Matrix &b)
     {
         for (int j = 0; j < b.cols; j++)
         {
-            double sum = 0;
+            std::complex<double> sum = 0;
             for (int k = 0; k < i; k++)
             {
                 sum += a.data[i][k] * result.data[k][j];
@@ -277,21 +277,21 @@ std::string Matrix::toString()
     {
         for (int j = 0; j < cols; j++)
         {
-            result += std::to_string(data[i][j]) + " ";
+            result += std::to_string(data[i][j].real()) + " " + std::to_string(data[i][j].imag()) + "i ";
         }
         result += "\n";
     }
     return result;
 }
 
-double Matrix::determinant()
+std::complex<double> Matrix::determinant()
 {   Matrix a = *this;
     if (a.rows != a.cols)
     {
         throw std::invalid_argument("Matrix is not square");
     }
     int n = a.rows;
-    double det = 1;
+    std::complex<double> det = 1;
     Matrix L(n);
     Matrix U(n);
     Matrix P(n);
@@ -397,7 +397,7 @@ bool Matrix::isUpperHessenberg() {
     Matrix a = *this;
     for (int i = 0; i < a.rows; i++) {
         for (int j = 0; j < a.cols; j++) {
-            if (i - j > 1 && a.data[i][j] != 0) {
+            if (i - j > 1 && a.data[i][j].real() != 0) {
                 return false;
             }
         }
@@ -409,13 +409,13 @@ bool Matrix::isTriDiagonal() {
     Matrix a = *this;
     for (int i = 0; i < a.rows; i++) {
         for (int j = 0; j < a.cols; j++) {
-            if (std::abs(i - j) > 1 && a.data[i][j] != 0) {
+            if (std::abs(i - j) > 1 && a.data[i][j].real() != 0) {
                 return false;
             }
         }
     }
     return true;
-}\
+}
 
 Matrix Matrix::QRSolver(Matrix &b) {
     

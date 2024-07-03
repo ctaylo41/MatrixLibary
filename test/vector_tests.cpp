@@ -5,9 +5,9 @@
 
 TEST(VectorTest, HandlesConstruction) {
     Vector v(2);
-    std::vector<double> data = {1,2};
+    std::vector<std::complex<double> > data = {1,2};
     Vector v2(data);
-    EXPECT_EQ(v.getRows(), 2);
+    EXPECT_EQ(v.getRows(),2);
     EXPECT_EQ(v.getCols(), 1);
     EXPECT_EQ(v2.getRows(), 2);
     EXPECT_EQ(v2.getCols(), 1);
@@ -17,22 +17,22 @@ TEST(VectorTest, HandlesConstruction) {
 }
 
 TEST(VectorTest, HandlesDotProduct) {
-    std::vector<double> data1 = {1, 2, 3};
-    std::vector<double> data2 = {4, 5, 6};
+    std::vector<std::complex<double> > data1 = {1, 2, 3};
+    std::vector<std::complex<double> > data2 = {4, 5, 6};
     Vector a(data1);
     Vector b(data2);
-    EXPECT_EQ(a*b, 32);
+    EXPECT_EQ((a*b).real(), 32);
 }
 
 TEST(VectorTest, HandlesMagnitude) {
-    std::vector<double> data = {1, 2, 3};
+    std::vector<std::complex<double> > data = {1, 2, 3};
     Vector a(data);
     EXPECT_EQ(a.magnitude(), sqrt(14));
 }
 
 TEST(VectorTest, HandlesCrossProduct) {
-    std::vector<double> data1 = {1, 2, 3};
-    std::vector<double> data2 = {4, 5, 6};
+    std::vector<std::complex<double> > data1 = {1, 2, 3};
+    std::vector<std::complex<double> > data2 = {4, 5, 6};
     Vector a(data1);
     Vector b(data2);
     Matrix result = a^b;

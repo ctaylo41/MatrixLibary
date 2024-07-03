@@ -4,15 +4,15 @@
 #include <vector>
 #include <string>
 #include <utility>
-
+#include <complex>
 class Matrix {
     protected:
         int rows;
         int cols;
-        std::vector<std::vector<double> > data;
+        std::vector<std::vector<std::complex<double> > > data;
     public:        
         Matrix(int rows, int cols);
-        Matrix(std::vector<std::vector<double> > data);
+        Matrix(std::vector<std::vector<std::complex<double> > > data);
         Matrix transpose();
         Matrix inverse();
         Matrix choleskyDecomp();
@@ -22,16 +22,16 @@ class Matrix {
         Matrix operator*(Matrix& b);
         Matrix operator*(double b);
         Matrix operator/(Matrix& b);
-        double get(int i, int j);
+        std::complex<double> get(int i, int j);
         int getRows();
         int getCols();
         void set(int i, int j, double value);
-        std::vector<std::vector<double> > getData();
+        std::vector<std::vector<std::complex<double> > > getData();
         bool equals(Matrix& a, Matrix& b);
         Matrix (int n);
         Matrix forwardSolve(Matrix& b);
         Matrix backwardSolve(Matrix& b);
-        double determinant();
+        std::complex<double> determinant();
         static void LUDecomposition(Matrix &a, Matrix &L, Matrix &U, Matrix &P);
         std::string toString();
         bool isUpperHessenberg();
