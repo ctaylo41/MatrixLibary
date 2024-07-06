@@ -2,6 +2,8 @@
 #include "matrix.h"
 #include <cmath>
 
+
+
 std::vector<std::vector<std::complex<double> > > Vector::convertToMatrix(std::vector<std::complex<double> > data) {
     std::vector<std::vector<std::complex<double> > > temp;
     for (std::complex<double>& value : data) {
@@ -17,6 +19,32 @@ std::complex<double> Vector::operator*(Vector& b) {
     }
     return result;
 }
+
+Vector Vector::operator*(std::complex<double> b) {
+    std::vector<std::complex<double> >  temp;
+    for (int i = 0; i < this->rows; i++) {
+        temp.push_back(this->data[i][0] * b);
+    }
+    return Vector(temp);
+}
+
+
+Vector Vector::operator+(Vector& b) {
+    std::vector<std::complex<double> > temp;
+    for (int i = 0; i < this->rows; i++) {
+        temp.push_back(this->data[i][0] + b.data[i][0]);
+    }
+    return Vector(temp);
+}
+
+Vector Vector::operator-(Vector& b) {
+    std::vector<std::complex<double> > temp;
+    for (int i = 0; i < this->rows; i++) {
+        temp.push_back(this->data[i][0] - b.data[i][0]);
+    }
+    return Vector(temp);
+}
+
 
 std::complex<double> Vector::magnitude() {
     std::complex<double> result = 0;
@@ -36,4 +64,8 @@ Matrix Vector::operator^(Vector& b) {
         {this->data[0][0] * b.data[1][0] - this->data[1][0] * b.data[0][0]}
     };
     return Matrix(temp);
+}
+
+Vector Vector::norm() {
+    return *this * (this->one.real() / this->magnitude().real());
 }

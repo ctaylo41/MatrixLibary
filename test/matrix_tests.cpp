@@ -16,7 +16,7 @@ TEST(MatrixTest, HandlesConstruction) {
     }   
 }
 
-TEST(MatrixTes, HandlesTranspose) {
+TEST(MatrixTest, HandlesTranspose) {
     std::vector<std::vector<std::complex<double> > > data = {{1,2,3},{4,5,6}};
     Matrix m(data);
     Matrix m2 = m.transpose();
@@ -181,6 +181,92 @@ TEST(MatrixTest, HandlesScalarMultiplication) {
     bool equal = a.equals(result, expected);
     EXPECT_TRUE(equal);
 }
+
+TEST(MatrixTest, HandlesGramSchmit) {
+    std::vector<std::vector<std::complex<double> > > data = {{1,1,0},{1,0,1},{0,1,1}};
+    Matrix a(data);
+    Matrix result = a.GramSchmidt();
+    std::vector<std::vector<std::complex<double> > > res = {{1/sqrt(2),1/sqrt(6),-1/sqrt(3)},{1/sqrt(2),-1/sqrt(6),1/sqrt(3)},{0,2/sqrt(6),1/sqrt(3)}};
+    Matrix expected(res);
+    bool equal = a.equals(result, expected);
+    EXPECT_TRUE(equal);
+}
+
+TEST(MatrixTest,HandlesQRDecomp) {
+    /*
+    std::vector<std::vector<std::complex<double> > > data = {{1,1,0},{1,0,1},{0,1,1}};
+    std::vector<std::vector<std::complex<double> > > Qres = {{1/sqrt(2),1/sqrt(6),-1/sqrt(3)},{1/sqrt(2),-1/sqrt(6),1/sqrt(3)},{0,2/sqrt(6),1/sqrt(3)}};
+    std::vector<std::vector<std::complex<double> > > Rres = {{sqrt(2),1/sqrt(2),1/sqrt(2)},{0,3/sqrt(6),1/sqrt(6)},{0,0,2/sqrt(3)}};
+    Matrix a(data);
+    Matrix Q(a.getRows(), a.getCols());
+    Matrix R(a.getRows(), a.getCols());
+    Matrix::QRDecomposition(a, Q, R);
+    Matrix Qexpected(Qres);
+    Matrix Rexpected(Rres);
+    bool equal = a.equals(Q, Qexpected);
+    EXPECT_TRUE(equal);
+    equal = a.equals(R, Rexpected);
+    EXPECT_TRUE(equal);
+    */
+    std::vector<std::vector<std::complex<double> > > data = {{1,1,1,0},{0,0,1,1},{1,0,1,1}};
+    Matrix a = Matrix(data);
+    Matrix Q(a.getRows(), a.getCols());
+    Matrix R(a.getRows(), a.getCols());
+    Matrix::QRDecomposition(a, Q, R);
+    
+    Matrix tmp = Q * R;
+    Matrix I = Matrix(a.getRows());
+    Matrix temp = Q.transpose()*Q;
+    bool equal = a.equals(a, tmp);
+    EXPECT_TRUE(equal);
+    equal = a.equals(temp, I);
+    EXPECT_TRUE(equal);
+
+    
+}
+
+
+TEST(MatrixTest, HandlesQRSolve) {
+    
+    std::vector<std::vector<std::complex<double> > > data = {{1,1,0},{1,0,1},{0,1,1}};
+    std::vector<std::vector<std::complex<double> > > bdata = {{1},{2},{3}};
+    Matrix a(data);
+    Matrix b(bdata);
+    Matrix result = a.QRSolver(b);
+    std::vector<std::vector<std::complex<double> > > res = {{0},{1},{2}};
+    Matrix expected(res);
+    bool equal = a.equals(result, expected);
+    EXPECT_TRUE(equal);
+    
+    std::vector<std::vector<std::complex<double> > > data2 = {{1,1,1,0},{0,0,1,1},{1,0,1,1}};
+    std::vector<std::vector<std::complex<double> > > bdata2 = {{1},{2},{3}};
+    Matrix a2(data2);
+    Matrix b2(bdata2);
+    Matrix result2 = a2.QRSolver(b2);
+    expected = a2 * result2;
+    equal = a2.equals(expected, b2);
+    EXPECT_TRUE(equal);
+}
+
+TEST(MatrixTest, HandlesIsUpperTriangular) {
+    std::vector<std::vector<std::complex<double> > > data = {{1, 2, 3}, {0, 5, 3}, {0, 0, 8}};
+    Matrix a(data);
+    EXPECT_TRUE(a.isUpperTriangular());
+    std::vector<std::vector<std::complex<double> > > data2 = {{1, 2, 3}, {2, 5, 3}, {1, 0, 8}};
+    Matrix a2(data2);
+    EXPECT_FALSE(a2.isUpperTriangular());
+}
+
+TEST(MatrixTest, HandlesIsLowerTriangular) {
+    std::vector<std::vector<std::complex<double> > > data = {{1, 0, 0}, {2, 5, 0}, {3, 4, 8}};
+    Matrix a(data);
+    EXPECT_TRUE(a.isLowerTriangular());
+    std::vector<std::vector<std::complex<double> > > data2 = {{1, 2, 3}, {2, 5, 3}, {1, 0, 8}};
+    Matrix a2(data2);
+    EXPECT_FALSE(a2.isLowerTriangular());
+}
+
+
 
 
 int main(int argc, char **argv) {

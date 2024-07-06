@@ -25,6 +25,8 @@ class Matrix {
         std::complex<double> get(int i, int j);
         int getRows();
         int getCols();
+        Matrix getRow(int i);
+        Matrix getCol(int i);
         void set(int i, int j, double value);
         std::vector<std::vector<std::complex<double> > > getData();
         bool equals(Matrix& a, Matrix& b);
@@ -40,6 +42,9 @@ class Matrix {
         bool isHermitian();
         Matrix conjugate();
         Matrix QRSolver(Matrix& b);
-
+        Matrix GramSchmidt();
+        static void QRDecomposition(Matrix &A, Matrix &Q, Matrix &R);
+        bool isUpperTriangular();
+        bool isLowerTriangular();
 };
 #endif

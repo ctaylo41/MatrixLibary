@@ -2,6 +2,7 @@
 #include "matrix.h"
 #include <iostream>
 #include <string>
+#include "vector.h"
 
 Matrix::Matrix(int rows, int cols)
 {
@@ -90,18 +91,16 @@ Matrix Matrix::inverse()
     Matrix result(n);
     Matrix L(n);
     Matrix U(n);
-    Matrix P(n);    
+    Matrix P(n);
     LUDecomposition(a, L, U, P);
-    
+
     Matrix b(n);
-    Matrix solve = P*b;
+    Matrix solve = P * b;
     Matrix y = L.forwardSolve(solve);
     Matrix x = U.backwardSolve(y);
-    
-    return x;
-    
-}
 
+    return x;
+}
 
 Matrix Matrix::choleskyDecomp()
 {
@@ -152,7 +151,7 @@ bool Matrix::equals(Matrix &a, Matrix &b)
     {
         for (int j = 0; j < a.cols; j++)
         {
-            if (std::abs(a.data[i][j]-b.data[i][j])>1e-9)
+            if (std::abs(a.data[i][j] - b.data[i][j]) > 1e-9)
             {
                 return false;
             }
@@ -164,15 +163,15 @@ bool Matrix::equals(Matrix &a, Matrix &b)
 Matrix Matrix::backwardSolve(Matrix &b)
 {
     Matrix a = *this;
-    if (a.rows != a.cols)
+    if (a.rows > a.cols)
     {
-        throw std::invalid_argument("Matrix is not square");
+        throw std::invalid_argument("Matrix has more rows than columns, not supported for this operation.");
     }
     if (a.rows != b.rows)
     {
         throw std::invalid_argument("Matrix dimensions do not match");
     }
-    Matrix result(a.rows, b.cols);
+    Matrix result(a.cols, b.cols);
     for (int i = a.rows - 1; i >= 0; i--)
     {
         for (int j = 0; j < b.cols; j++)
@@ -182,10 +181,17 @@ Matrix Matrix::backwardSolve(Matrix &b)
             {
                 sum += a.data[i][k] * result.data[k][j];
             }
+            if (std::abs(a.data[i][i]) < 1e-12) // Check for division by zero or very small numbers
+            {
+                throw std::runtime_error("Matrix is singular or nearly singular");
+            }
+
             result.data[i][j] = (b.data[i][j] - sum) / a.data[i][i];
         }
     }
+    
     return result;
+
 }
 Matrix Matrix::forwardSolve(Matrix &b)
 {
@@ -227,42 +233,56 @@ void Matrix::LUDecomposition(Matrix &a, Matrix &L, Matrix &U, Matrix &P)
     U = Matrix(n);
     P = Matrix(n);
 
-    for (int k = 0; k < n - 1; ++k) {
+    for (int k = 0; k < n - 1; ++k)
+    {
         double maxval = 0.0;
         int maxindex = k;
         // Find the maximum value and its index
-        for (int i = k; i < n; ++i) {
-            if (std::abs(a.get(i,k)) > maxval) {
-                maxval = std::abs(a.get(i,k));
+        for (int i = k; i < n; ++i)
+        {
+            if (std::abs(a.get(i, k)) > maxval)
+            {
+                maxval = std::abs(a.get(i, k));
                 maxindex = i;
             }
         }
         int q = maxindex;
-        if (maxval == 0) throw std::runtime_error("A is singular");
-        if (q != k) {
+        if (maxval == 0)
+            throw std::runtime_error("A is singular");
+        if (q != k)
+        {
             // Swap rows in A and P
             std::swap(a.data[k], a.data[q]);
             std::swap(P.data[k], P.data[q]);
         }
         // Update the elements below the pivot
-        for (int i = k + 1; i < n; ++i) {
+        for (int i = k + 1; i < n; ++i)
+        {
             a.data[i][k] /= a.data[k][k];
-            for (int j = k + 1; j < n; ++j) {
+            for (int j = k + 1; j < n; ++j)
+            {
                 a.data[i][j] -= a.data[i][k] * a.data[k][j];
             }
         }
     }
 
     // Split the LU matrix into L and U
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            if (i > j) {
+    for (int i = 0; i < n; ++i)
+    {
+        for (int j = 0; j < n; ++j)
+        {
+            if (i > j)
+            {
                 L.data[i][j] = a.data[i][j];
                 U.data[i][j] = 0;
-            } else if (i == j) {
+            }
+            else if (i == j)
+            {
                 L.data[i][j] = 1;
                 U.data[i][j] = a.data[i][j];
-            } else {
+            }
+            else
+            {
                 L.data[i][j] = 0;
                 U.data[i][j] = a.data[i][j];
             }
@@ -285,7 +305,8 @@ std::string Matrix::toString()
 }
 
 std::complex<double> Matrix::determinant()
-{   Matrix a = *this;
+{
+    Matrix a = *this;
     if (a.rows != a.cols)
     {
         throw std::invalid_argument("Matrix is not square");
@@ -374,7 +395,6 @@ Matrix Matrix::operator*(double b)
     return result;
 }
 
-
 Matrix Matrix::operator/(Matrix &b)
 {
     Matrix a = *this;
@@ -382,7 +402,7 @@ Matrix Matrix::operator/(Matrix &b)
     Matrix U(a.rows);
     Matrix P(a.rows);
     LUDecomposition(a, L, U, P);
-    Matrix result = P*b;
+    Matrix result = P * b;
     Matrix y = L.forwardSolve(result);
     Matrix x = U.backwardSolve(y);
     return x;
@@ -393,11 +413,15 @@ bool Matrix::isSquare()
     return rows == cols;
 }
 
-bool Matrix::isUpperHessenberg() {
+bool Matrix::isUpperHessenberg()
+{
     Matrix a = *this;
-    for (int i = 0; i < a.rows; i++) {
-        for (int j = 0; j < a.cols; j++) {
-            if (i - j > 1 && a.data[i][j].real() != 0) {
+    for (int i = 0; i < a.rows; i++)
+    {
+        for (int j = 0; j < a.cols; j++)
+        {
+            if (i - j > 1 && a.data[i][j].real() != 0)
+            {
                 return false;
             }
         }
@@ -405,11 +429,15 @@ bool Matrix::isUpperHessenberg() {
     return true;
 }
 
-bool Matrix::isTriDiagonal() {
+bool Matrix::isTriDiagonal()
+{
     Matrix a = *this;
-    for (int i = 0; i < a.rows; i++) {
-        for (int j = 0; j < a.cols; j++) {
-            if (std::abs(i - j) > 1 && a.data[i][j].real() != 0) {
+    for (int i = 0; i < a.rows; i++)
+    {
+        for (int j = 0; j < a.cols; j++)
+        {
+            if (std::abs(i - j) > 1 && a.data[i][j].real() != 0)
+            {
                 return false;
             }
         }
@@ -417,6 +445,131 @@ bool Matrix::isTriDiagonal() {
     return true;
 }
 
-Matrix Matrix::QRSolver(Matrix &b) {
+Matrix Matrix::GramSchmidt()
+{
+    Matrix a = *this;
     
+    a = a.transpose();
+    Matrix res(a.rows, a.cols);
+    for (int i = 0; i < a.cols; i++)
+    {
+        Vector col = Vector(a.getRow(i).getData()[0]);
+        for (int j = 0; j < i; j++)
+        {
+            Vector proj = Vector(res.data[j]);
+            std::complex<double> dot = col * proj;
+            Vector temp = proj * dot;
+            col = col - temp;
+        }
+
+        res.data[i] = col.norm().transpose().getData()[0];
+    }
+    return res.transpose();
+}
+
+Matrix Matrix::getRow(int i)
+{
+    Matrix a = *this;
+    Matrix result(1, a.cols);
+    for (int j = 0; j < a.cols; j++)
+    {
+        result.data[0][j] = a.data[i][j];
+    }
+    return result;
+}
+
+Matrix Matrix::getCol(int i)
+{
+    Matrix a = *this;
+    Matrix result(a.rows, 1);
+    for (int j = 0; j < a.rows; j++)
+    {
+        result.data[j][0] = a.data[j][i];
+    }
+    return result;
+}
+
+void Matrix::QRDecomposition(Matrix &A, Matrix &Q, Matrix &R)
+{
+    int m = A.cols;
+    int n = A.rows;
+    
+    Q = Matrix(n, n);
+    R = Matrix(n, m);
+    for(int i=0; i<n; i++){
+        Vector col = Vector(A.getCol(i).transpose().getData()[0]);
+        for(int j=0; j<i; j++){
+            Vector proj = Vector(Q.data[j]);
+            std::complex<double> dot = col * proj;
+            R.data[j][i] = dot;
+            Vector temp = proj * dot;
+
+            col = col - temp;
+        }
+        
+        R.data[i][i] = col.magnitude();
+        Vector tmp = col.norm();
+        Q.data[i] = tmp.transpose().getData()[0];
+
+        
+          
+    }
+    if(n < m) {
+    for(int i = n; i < m; i++){
+        Vector col = Vector(A.getCol(i).transpose().getData()[0]);
+        for(int j = 0; j < n; j++){
+            Vector proj = Vector(Q.data[j]);
+            std::complex<double> dot = col * proj;
+            R.data[j][i] = dot; // Update R with the dot product
+        }
+    }
+    }
+    
+
+    Q = Q.transpose();
+}
+
+
+
+Matrix Matrix::QRSolver(Matrix &b)
+{
+    Matrix a = *this;
+    Matrix Q(a.rows, a.cols);
+    Matrix R(a.rows, a.cols);
+    Matrix::QRDecomposition(a, Q, R);
+
+    Matrix y = Q.transpose() * b;
+    Matrix x = R.backwardSolve(y);
+    return x;
+}
+bool Matrix::isUpperTriangular()
+{
+    Matrix a = *this;
+    for (int i = 0; i < a.rows; i++)
+    {
+        for (int j = 0; j < i; j++)
+        {
+            if (a.data[i][j].real() != 0)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool Matrix::isLowerTriangular()
+{
+    Matrix a = *this;
+    for (int i = 0; i < a.rows; i++)
+    {
+        for (int j = i + 1; j < a.cols; j++)
+        {
+            if (a.data[i][j].real() != 0)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
 }
