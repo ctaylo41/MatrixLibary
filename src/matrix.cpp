@@ -36,6 +36,13 @@ Matrix::Matrix(std::vector<std::vector<std::complex<double> > > data)
         {
             throw std::invalid_argument("All rows must have the same number of columns");
         }
+        for (int j = 0; j < data[i].size(); j++)
+        {
+            if (data[i][j].imag() != 0)
+            {
+                this->complex = true;
+            }
+        }
     }
     this->rows = data.size();
     this->cols = data[0].size();
@@ -397,14 +404,55 @@ Matrix Matrix::operator*(double b)
 Matrix Matrix::operator/(Matrix &b)
 {
     Matrix a = *this;
-    Matrix L(a.rows);
-    Matrix U(a.rows);
-    Matrix P(a.rows);
-    LUDecomposition(a, L, U, P);
-    Matrix result = P * b;
-    Matrix y = L.forwardSolve(result);
-    Matrix x = U.backwardSolve(y);
-    return x;
+    if (a.isSquare())
+    {
+        if (a.isUpperTriangular())
+        {
+            return a.backwardSolve(b);
+        }
+        else if (a.isLowerTriangular())
+        {
+            return a.forwardSolve(b);
+        }
+        else if (a.complex && a.getCols() <= 16 || !a.complex && a.getCols() <= 8)
+        {
+            return a.LUSolver(b);
+        }
+        else
+        {
+            if (a.isUpperHessenberg())
+            {
+                if (a.isTriDiagonal())
+                {
+                    return a.tridigonalSolver(b);
+                }
+                else
+                {
+                    return a.hessenbergSolver(b);
+                }
+            }
+            else if (a.isHermitian())
+            {
+                try
+                {
+                    a = a.choleskyDecomp();
+                    return a.backwardSolve(b);
+                }
+                catch (std::runtime_error e)
+                {
+                    return a.LUSolver(b);
+                }
+            }
+            else
+            {
+                return a.LUSolver(b);
+            }
+        }
+    }
+    else
+    {
+        return a.QRSolver(b);
+    }
 }
 
 bool Matrix::isSquare()
@@ -642,4 +690,101 @@ Matrix Matrix::tridigonalSolver(Matrix &b)
     return bCopy;
 }
 
+Matrix Matrix::calculateGivenRotationMatrix(int i, int j)
+{
+    Matrix H = *this;
+    if (H.getRows() != H.getCols())
+    {
+        throw std::invalid_argument("Matrix is not square");
+    }
 
+    std::complex<double> a = H.get(i, j);
+    std::complex<double> b = H.get(i + 1, j);
+    std::complex<double> r = std::sqrt(a * a + b * b);
+    std::complex<double> c = a / r;
+    std::complex<double> s = -b / r;
+
+    Matrix res = Matrix(H.getRows());
+    res.data[i][j] = c;
+    res.data[i][j + 1] = -s;
+    res.data[i + 1][j] = s;
+    res.data[i + 1][j + 1] = c;
+    return res;
+}
+
+void Matrix::hessenbergQRDecomposition(Matrix &A, Matrix &Q, Matrix &R)
+{
+    if (A.getRows() != A.getCols())
+    {
+        throw std::invalid_argument("Matrix is not square");
+    }
+    R = A;
+    Q = Matrix(A.getRows());
+    for (int i = 0; i < A.getRows() - 1; i++)
+    {
+        Matrix G = R.calculateGivenRotationMatrix(i, i);
+        R = G * R;
+        Matrix tmp = G.transpose();
+        Q = Q * tmp;
+    }
+    Matrix s = Q * R;
+}
+
+void Matrix::setRow(int i, Matrix &row)
+{
+    Matrix a = *this;
+    if (a.cols != row.cols)
+    {
+        throw std::invalid_argument("Matrix dimensions do not match");
+    }
+    for (int j = 0; j < a.cols; j++)
+    {
+        if (row.data[i][j].imag() != 0)
+        {
+            this->complex = true;
+        }
+        a.data[i][j] = row.data[0][j];
+    }
+}
+
+void Matrix::setCol(int i, Matrix &col)
+{
+    Matrix a = *this;
+    if (a.rows != col.rows)
+    {
+        throw std::invalid_argument("Matrix dimensions do not match");
+    }
+
+    for (int j = 0; j < a.rows; j++)
+    {
+        a.data[j][i] = col.data[j][0];
+        if (col.data[j][0].imag() != 0)
+        {
+            this->complex = true;
+        }
+    }
+}
+
+Matrix Matrix::hessenbergSolver(Matrix &b)
+{
+    Matrix a = *this;
+    Matrix Q(a.getRows());
+    Matrix R(a.getRows());
+    Matrix::hessenbergQRDecomposition(a, Q, R);
+    Matrix y = Q.transpose() * b;
+    Matrix x = R.backwardSolve(y);
+    return x;
+}
+
+Matrix Matrix::LUSolver(Matrix &b)
+{
+    Matrix a = *this;
+    Matrix L(a.rows);
+    Matrix U(a.rows);
+    Matrix P(a.rows);
+    LUDecomposition(a, L, U, P);
+    Matrix result = P * b;
+    Matrix y = L.forwardSolve(result);
+    Matrix x = U.backwardSolve(y);
+    return x;
+}

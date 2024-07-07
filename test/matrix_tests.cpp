@@ -204,7 +204,7 @@ TEST(MatrixTest, HandlesGramSchmit)
 
 TEST(MatrixTest, HandlesQRDecomp)
 {
-    /*
+    
     std::vector<std::vector<std::complex<double> > > data = {{1,1,0},{1,0,1},{0,1,1}};
     std::vector<std::vector<std::complex<double> > > Qres = {{1/sqrt(2),1/sqrt(6),-1/sqrt(3)},{1/sqrt(2),-1/sqrt(6),1/sqrt(3)},{0,2/sqrt(6),1/sqrt(3)}};
     std::vector<std::vector<std::complex<double> > > Rres = {{sqrt(2),1/sqrt(2),1/sqrt(2)},{0,3/sqrt(6),1/sqrt(6)},{0,0,2/sqrt(3)}};
@@ -218,17 +218,17 @@ TEST(MatrixTest, HandlesQRDecomp)
     EXPECT_TRUE(equal);
     equal = a.equals(R, Rexpected);
     EXPECT_TRUE(equal);
-    */
-    std::vector<std::vector<std::complex<double>>> data = {{1, 1, 1, 0}, {0, 0, 1, 1}, {1, 0, 1, 1}};
-    Matrix a = Matrix(data);
-    Matrix Q(a.getRows(), a.getCols());
-    Matrix R(a.getRows(), a.getCols());
+    
+    data = {{1, 1, 1, 0}, {0, 0, 1, 1}, {1, 0, 1, 1}};
+    a = Matrix(data);
+    Q = Matrix(a.getRows(), a.getCols());
+    R = Matrix(a.getRows(), a.getCols());
     Matrix::QRDecomposition(a, Q, R);
 
     Matrix tmp = Q * R;
     Matrix I = Matrix(a.getRows());
     Matrix temp = Q.transpose() * Q;
-    bool equal = a.equals(a, tmp);
+    equal = a.equals(a, tmp);
     EXPECT_TRUE(equal);
     equal = a.equals(temp, I);
     EXPECT_TRUE(equal);
@@ -330,6 +330,56 @@ TEST(MatrixTest, HandlesConjugate)
     Matrix expected(res);
     bool equal = a.equals(result, expected);
     EXPECT_TRUE(equal);
+}
+
+
+
+
+TEST(MatrixTest, HandlesCaculateGivenRotationMatrix) {
+    std::vector<std::vector<std::complex<double>>> data = {{1,4,2,3},{3,4,1,7},{0,2,3,4},{0,0,1,3}};
+    Matrix a(data);
+    for(int i = 0; i < a.getRows()-1; i++) {
+        Matrix givens = a.calculateGivenRotationMatrix(i,i);
+        a = givens * a;
+        EXPECT_DOUBLE_EQ(a.get(i+1,i).real(),0);
+    }
+}
+
+TEST(MatrixTest, HandlesHessenbergQRDecomposition) {
+    std::vector<std::vector<std::complex<double>>> data = {{1,4,2,3},{3,4,1,7},{0,2,3,4},{0,0,1,3}};
+    Matrix a(data);
+    Matrix Q(a.getRows(), a.getCols());
+    Matrix R(a.getRows(), a.getCols());
+    Matrix::hessenbergQRDecomposition(a,Q,R);
+    Matrix tmp = Q * R;
+    EXPECT_TRUE(a.equals(a,tmp));
+}
+
+
+TEST(MatrixTest, HandlesHessenbergSolver) {
+    std::vector<std::vector<std::complex<double>>> data = {{1,4,2,3},{3,4,1,7},{0,2,3,4},{0,0,1,3}};
+    std::vector<std::vector<std::complex<double>>> bdata = {{7},{4},{6},{8}};
+    std::vector<std::vector<std::complex<double>>> resdata = {{-22},{8.5},{-13},{7}};
+    Matrix a(data);
+    Matrix b(bdata);
+    Matrix res(resdata);    
+    Matrix result = a.hessenbergSolver(b);
+    Matrix tmp = a * result;
+    EXPECT_TRUE(a.equals(tmp,b));
+    EXPECT_TRUE(a.equals(result,res));
+}
+
+TEST(MatrixTest, HandlesLUSolver) {
+    std::vector<std::vector<std::complex<double>>> data = {{1,4,2,3},{3,4,1,7},{0,2,3,4},{0,0,1,3}};
+    std::vector<std::vector<std::complex<double>>> bdata = {{7},{4},{6},{8}};
+    std::vector<std::vector<std::complex<double>>> resdata = {{-22},{8.5},{-13},{7}};
+    Matrix a(data);
+    Matrix b(bdata);
+    Matrix res(resdata);    
+    Matrix result = a.LUSolver(b);
+    Matrix tmp = a * result;
+    EXPECT_TRUE(a.equals(tmp,b));
+    EXPECT_TRUE(a.equals(result,res));
 }
 
 

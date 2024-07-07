@@ -11,6 +11,7 @@ protected:
     int rows;
     int cols;
     std::vector<std::vector<std::complex<double> > > data;
+    bool complex;
 
 public:
     Matrix(int rows, int cols);
@@ -30,6 +31,8 @@ public:
     Matrix getRow(int i);
     Matrix getCol(int i);
     void set(int i, int j, std::complex<double> value);
+    void setRow(int i, Matrix &row);
+    void setCol(int i, Matrix &col);
     std::vector<std::vector<std::complex<double> > > getData();
     bool equals(Matrix &a, Matrix &b);
     Matrix(int n);
@@ -48,5 +51,9 @@ public:
     bool isUpperTriangular();
     bool isLowerTriangular();
     Matrix tridigonalSolver(Matrix &b);
+    Matrix calculateGivenRotationMatrix(int i,int j);
+    static void hessenbergQRDecomposition(Matrix &A,Matrix &Q, Matrix &R);
+    Matrix hessenbergSolver(Matrix &b);
+    Matrix LUSolver(Matrix &b);
 };
 #endif
