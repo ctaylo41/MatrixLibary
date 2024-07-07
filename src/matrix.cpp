@@ -13,6 +13,7 @@ Matrix::Matrix(int rows, int cols)
     {
         data[i].resize(cols);
     }
+
 }
 
 Matrix::Matrix(int n)
@@ -787,4 +788,84 @@ Matrix Matrix::LUSolver(Matrix &b)
     Matrix y = L.forwardSolve(result);
     Matrix x = U.backwardSolve(y);
     return x;
+}
+
+bool Matrix::isSparse()
+{
+    Matrix a = *this;
+    int count = 0;
+    for (int i = 0; i < a.rows; i++)
+    {
+        for (int j = 0; j < a.cols; j++)
+        {
+            if (a.data[i][j].real() != 0)
+            {
+
+                count++;
+            }
+        }
+    }
+    float res =  static_cast<float>(count) / (a.getRows() * a.getRows());
+    return res < 0.3;
+}
+
+Matrix Matrix::operator==(Matrix &b)
+{
+    return equals(*this, b);
+}
+
+int Matrix::upperBandwidth()
+{
+    Matrix a = *this;
+    int max = 0;
+    for (int i = 0; i < a.rows; i++)
+    {
+        for (int j = i + 1; j < a.cols; j++)
+        {
+            if (a.data[i][j].real() != 0)
+            {
+                max = std::max(max, j - i);
+            }
+        }
+    }
+    return max;
+}
+
+int Matrix::lowerBandwidth()
+{
+    Matrix a = *this;
+    int max = 0;
+    for (int i = 0; i < a.rows; i++)
+    {
+        for (int j = 0; j < i; j++)
+        {
+            if (a.data[i][j].real() != 0)
+            {
+                max = std::max(max, i - j);
+            }
+        }
+    }
+    return max;
+}
+
+
+float Matrix::bandDensity()
+{
+    Matrix a = *this;
+    int count = 0;
+    for (int i = 0; i < a.rows; i++)
+    {
+        for (int j = 0; j < a.cols; j++)
+        {
+            if (a.data[i][j].real() != 0)
+            {
+                count++;
+            }
+        }
+    }
+    return static_cast<float>(count) / (a.getRows() * a.getCols());
+}
+
+Matrix Matrix::bandedDecomposition(Matrix &L, Matrix &U) {
+    
 }

@@ -382,6 +382,32 @@ TEST(MatrixTest, HandlesLUSolver) {
     EXPECT_TRUE(a.equals(result,res));
 }
 
+TEST(MatrixTest, HandlesSparse) {
+    std::vector<std::vector<std::complex<double>>> data = {{1,4,2,3},{3,4,1,7},{0,2,3,4},{0,0,1,3}};
+    Matrix a(data);
+    EXPECT_FALSE(a.isSparse());
+    std::vector<std::vector<std::complex<double>>> data2 = {{1,0,0,0},{0,4,0,0},{0,0,2,0},{0,0,0,3}};
+    Matrix a2(data2);
+    EXPECT_TRUE(a2.isSparse());
+}
+
+TEST(MatrixTest, HandlesUpperBandwidth) {
+    std::vector<std::vector<std::complex<double>>> data = {{1,4,2,3},{3,4,1,7},{0,2,3,4},{0,0,1,3}};
+    Matrix a(data);
+    EXPECT_EQ(a.upperBandwidth(),3);
+    std::vector<std::vector<std::complex<double>>> data2 = {{1,4,2,3},{0,4,1,7},{0,8,3,4},{0,9,0,3}};
+    Matrix a2(data2);
+    EXPECT_EQ(a2.upperBandwidth(),3);
+}
+
+TEST(MatrixTest, HandlesLowerBandwidth) {
+    std::vector<std::vector<std::complex<double>>> data = {{1,4,2,3},{3,4,1,7},{0,2,3,4},{0,0,1,3}};
+    Matrix a(data);
+    EXPECT_EQ(a.lowerBandwidth(),1);
+    std::vector<std::vector<std::complex<double>>> data2 = {{1,0,0,0},{3,4,0,0},{5,2,3,0},{7,0,1,3}};
+    Matrix a2(data2);
+    EXPECT_EQ(a2.lowerBandwidth(),3);
+}
 
 int main(int argc, char **argv)
 {

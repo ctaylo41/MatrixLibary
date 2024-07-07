@@ -25,6 +25,7 @@ public:
     Matrix operator*(Matrix &b);
     Matrix operator*(double b);
     Matrix operator/(Matrix &b);
+    Matrix operator==(Matrix &b);
     std::complex<double> get(int i, int j);
     int getRows();
     int getCols();
@@ -55,5 +56,10 @@ public:
     static void hessenbergQRDecomposition(Matrix &A,Matrix &Q, Matrix &R);
     Matrix hessenbergSolver(Matrix &b);
     Matrix LUSolver(Matrix &b);
+    bool isSparse();
+    int upperBandwidth();
+    int lowerBandwidth();
+    float bandDensity();
+    Matrix bandedDecomposition(Matrix &L, Matrix &U);
 };
 #endif
