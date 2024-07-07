@@ -61,7 +61,7 @@ int Matrix::getCols()
     return cols;
 }
 
-void Matrix::set(int i, int j, double value)
+void Matrix::set(int i, int j, std::complex<double> value)
 {
     data[i][j] = value;
 }
@@ -189,9 +189,8 @@ Matrix Matrix::backwardSolve(Matrix &b)
             result.data[i][j] = (b.data[i][j] - sum) / a.data[i][i];
         }
     }
-    
-    return result;
 
+    return result;
 }
 Matrix Matrix::forwardSolve(Matrix &b)
 {
@@ -448,7 +447,7 @@ bool Matrix::isTriDiagonal()
 Matrix Matrix::GramSchmidt()
 {
     Matrix a = *this;
-    
+
     a = a.transpose();
     Matrix res(a.rows, a.cols);
     for (int i = 0; i < a.cols; i++)
@@ -493,12 +492,14 @@ void Matrix::QRDecomposition(Matrix &A, Matrix &Q, Matrix &R)
 {
     int m = A.cols;
     int n = A.rows;
-    
+
     Q = Matrix(n, n);
     R = Matrix(n, m);
-    for(int i=0; i<n; i++){
+    for (int i = 0; i < n; i++)
+    {
         Vector col = Vector(A.getCol(i).transpose().getData()[0]);
-        for(int j=0; j<i; j++){
+        for (int j = 0; j < i; j++)
+        {
             Vector proj = Vector(Q.data[j]);
             std::complex<double> dot = col * proj;
             R.data[j][i] = dot;
@@ -506,30 +507,53 @@ void Matrix::QRDecomposition(Matrix &A, Matrix &Q, Matrix &R)
 
             col = col - temp;
         }
-        
+
         R.data[i][i] = col.magnitude();
         Vector tmp = col.norm();
         Q.data[i] = tmp.transpose().getData()[0];
-
-        
-          
     }
-    if(n < m) {
-    for(int i = n; i < m; i++){
-        Vector col = Vector(A.getCol(i).transpose().getData()[0]);
-        for(int j = 0; j < n; j++){
-            Vector proj = Vector(Q.data[j]);
-            std::complex<double> dot = col * proj;
-            R.data[j][i] = dot; // Update R with the dot product
+    if (n < m)
+    {
+        for (int i = n; i < m; i++)
+        {
+            Vector col = Vector(A.getCol(i).transpose().getData()[0]);
+            for (int j = 0; j < n; j++)
+            {
+                Vector proj = Vector(Q.data[j]);
+                std::complex<double> dot = col * proj;
+                R.data[j][i] = dot; // Update R with the dot product
+            }
         }
     }
-    }
-    
 
     Q = Q.transpose();
 }
 
+Matrix Matrix::conjugate()
+{
+    Matrix a = *this;
+    Matrix result(a.rows, a.cols);
+    for (int i = 0; i < a.rows; i++)
+    {
+        for (int j = 0; j < a.cols; j++)
+        {
+            result.data[i][j] = std::conj(a.data[i][j]);
+        }
+    }
 
+    return result;
+}
+
+bool Matrix::isHermitian()
+{
+    Matrix a = *this;
+    if (a.rows != a.cols)
+    {
+        return false;
+    }
+    Matrix conj = a.conjugate().transpose();
+    return equals(a, conj);
+}
 
 Matrix Matrix::QRSolver(Matrix &b)
 {
@@ -573,3 +597,49 @@ bool Matrix::isLowerTriangular()
     }
     return true;
 }
+
+Matrix Matrix::tridigonalSolver(Matrix &b)
+{
+    Matrix a = *this;
+    Matrix bCopy = b;
+    if (!a.isTriDiagonal())
+    {
+        throw std::invalid_argument("Matrix is not tridiagonal");
+    }
+    if (a.rows != b.rows)
+    {
+        throw std::invalid_argument("Matrix dimensions do not match");
+    }
+    Matrix result(a.rows, b.cols);
+    std::vector<std::complex<double> > c(a.rows);
+    std::vector<std::complex<double> > d(a.rows);
+    std::vector<std::complex<double> > e(a.rows);
+    for (int i = 0; i < a.rows; i++)
+    {
+        if (i < a.rows - 1)
+        {
+            c[i] = this->data[i][i + 1]; // Superdiagonal
+            e[i] = this->data[i + 1][i]; // Subdiagonal
+        }
+        d[i] = this->data[i][i];
+    }
+    for (int i = 1; i < a.rows; i++)
+    {
+        std::complex<double> temp = e[i - 1] / d[i - 1];
+        d[i] = d[i] - temp * c[i - 1];
+        bCopy.data[i][0] = bCopy.data[i][0] - temp * bCopy.data[i - 1][0];
+    }
+
+    for (int i = a.rows - 1; i >= 0; i--)
+    {
+        bCopy.data[i][0] = bCopy.data[i][0] / d[i];
+        if (i > 0)
+        {
+            bCopy.data[i - 1][0] = bCopy.data[i - 1][0] - c[i - 1] * bCopy.data[i][0];
+        }
+    }
+
+    return bCopy;
+}
+
+
