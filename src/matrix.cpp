@@ -5,6 +5,10 @@
 #include "vector.h"
 #include <cmath>
 
+// Constructor for creating a matrix of given rows and columns
+// Initializes all elements to zero
+// @param rows Number of rows in the matrix
+// @param cols Number of columns in the matrix
 Matrix::Matrix(int rows, int cols)
 {
     this->rows = rows;
@@ -15,7 +19,9 @@ Matrix::Matrix(int rows, int cols)
         data[i].resize(cols);
     }
 }
-
+// Constructor for creating a square matrix of size n x n
+// Initializes the matrix as an identity matrix
+// @param n Size of the matrix (both rows and columns)
 Matrix::Matrix(int n)
 {
     this->rows = n;
@@ -27,7 +33,9 @@ Matrix::Matrix(int n)
         data[i][i] = 1;
     }
 }
-
+// Constructor for creating a matrix from a 2D vector of complex numbers
+// Throws std::invalid_argument if rows in the input data have different sizes
+// @param data 2D vector of std::complex<double> representing matrix data
 Matrix::Matrix(std::vector<std::vector<std::complex<double> > > data)
 {
     this->data = data;
@@ -49,31 +57,34 @@ Matrix::Matrix(std::vector<std::vector<std::complex<double> > > data)
     this->cols = data[0].size();
 }
 
+// Returns the matrix data as a 2D vector of complex numbers
 std::vector<std::vector<std::complex<double> > > Matrix::getData()
 {
     return data;
 }
-
+// Returns the element at the given row and column
+// @param i Row index
+// @param j Column index
 std::complex<double> Matrix::get(int i, int j)
 {
     return data[i][j];
 }
-
+// Returns the number of rows in the matrix
 int Matrix::getRows()
 {
     return rows;
 }
-
+// Returns the number of columns in the matrix
 int Matrix::getCols()
 {
     return cols;
 }
-
+// Sets the element at the given row and column to the given value
 void Matrix::set(int i, int j, std::complex<double> value)
 {
     data[i][j] = value;
 }
-
+// Transposes Matrix
 Matrix Matrix::transpose()
 {
     Matrix a = *this;
@@ -88,6 +99,7 @@ Matrix Matrix::transpose()
 
     return result;
 }
+// Inverts Matrix
 Matrix Matrix::inverse()
 {
     Matrix a = *this;
@@ -109,7 +121,10 @@ Matrix Matrix::inverse()
 
     return x;
 }
-
+// Cholesky Decomposition
+// breaks down a Hermitian, positive-definite 
+//matrix into the product of a lower 
+//triangular matrix and its conjugate transpose
 Matrix Matrix::choleskyDecomp()
 {
     Matrix a = *this;
@@ -148,7 +163,9 @@ Matrix Matrix::choleskyDecomp()
     }
     return result;
 }
-
+// Checks if two matrices are equal
+// @param a First matrix
+// @param b Second matrix
 bool Matrix::equals(Matrix &a, Matrix &b)
 {
     if (a.rows != b.rows || a.cols != b.cols)
@@ -167,7 +184,8 @@ bool Matrix::equals(Matrix &a, Matrix &b)
     }
     return true;
 }
-
+// Forward substitution for solving a system of linear equations
+// @param b Matrix representing the right-hand side of the system of equations
 Matrix Matrix::backwardSolve(Matrix &b)
 {
     Matrix a = *this;
@@ -200,6 +218,8 @@ Matrix Matrix::backwardSolve(Matrix &b)
 
     return result;
 }
+// Backward substitution for solving a system of linear equations
+// @param b Matrix representing the right-hand side of the system of equations
 Matrix Matrix::forwardSolve(Matrix &b)
 {
     Matrix a = *this;
@@ -226,7 +246,12 @@ Matrix Matrix::forwardSolve(Matrix &b)
     }
     return result;
 }
-
+// LU Decomposition
+// Decomposes a matrix into the product of a lower triangular matrix L, an upper triangular matrix U, and a permutation matrix P
+// @param a Matrix to be decomposed
+// @param L Lower triangular matrix
+// @param U Upper triangular matrix
+// @param P Permutation matrix
 void Matrix::LUDecomposition(Matrix &a, Matrix &L, Matrix &U, Matrix &P)
 {
     if (a.rows != a.cols)
@@ -296,7 +321,7 @@ void Matrix::LUDecomposition(Matrix &a, Matrix &L, Matrix &U, Matrix &P)
         }
     }
 }
-
+// Converts the matrix to a string representation
 std::string Matrix::toString()
 {
     std::string result = "";
@@ -310,7 +335,7 @@ std::string Matrix::toString()
     }
     return result;
 }
-
+// Calculates the determinant of the matrix
 std::complex<double> Matrix::determinant()
 {
     Matrix a = *this;
@@ -330,7 +355,8 @@ std::complex<double> Matrix::determinant()
     }
     return det;
 }
-
+// Matrix multiplication
+// @param b Matrix to multiply with
 Matrix Matrix::operator*(Matrix &b)
 {
     Matrix a = *this;
@@ -351,7 +377,8 @@ Matrix Matrix::operator*(Matrix &b)
     }
     return result;
 }
-
+// Matrix Addition
+// @param b Matrix to add
 Matrix Matrix::operator+(Matrix &b)
 {
     Matrix a = *this;
@@ -369,7 +396,8 @@ Matrix Matrix::operator+(Matrix &b)
     }
     return result;
 }
-
+// Matrix subtraction
+// @param b Matrix to subtract
 Matrix Matrix::operator-(Matrix &b)
 {
     Matrix a = *this;
@@ -387,7 +415,8 @@ Matrix Matrix::operator-(Matrix &b)
     }
     return result;
 }
-
+// Scalar multiplication
+// @param b Scalar to multiply with
 Matrix Matrix::operator*(double b)
 {
     Matrix a = *this;
@@ -403,7 +432,8 @@ Matrix Matrix::operator*(double b)
 }
 
 
-
+// Full Matrix Solve
+// param b Matrix representing the right-hand side of the system of equations
 Matrix Matrix::operator/(Matrix &b)
 {
     Matrix a = *this;
@@ -457,12 +487,13 @@ Matrix Matrix::operator/(Matrix &b)
         return a.QRSolver(b);
     }
 }
-
+// If matrix is square
 bool Matrix::isSquare()
 {
     return rows == cols;
 }
-
+// If matrix is upper Hessenberg
+// A matrix is upper Hessenberg if all entries below the first subdiagonal are zero
 bool Matrix::isUpperHessenberg()
 {
     Matrix a = *this;
@@ -478,7 +509,7 @@ bool Matrix::isUpperHessenberg()
     }
     return true;
 }
-
+// If matrix is tridiagonal
 bool Matrix::isTriDiagonal()
 {
     Matrix a = *this;
@@ -494,7 +525,9 @@ bool Matrix::isTriDiagonal()
     }
     return true;
 }
-
+// Gram-Schmidt process
+// Orthonormalizes the columns of the matrix
+// Returns a matrix with orthonormal columns
 Matrix Matrix::GramSchmidt()
 {
     Matrix a = *this;
@@ -516,7 +549,8 @@ Matrix Matrix::GramSchmidt()
     }
     return res.transpose();
 }
-
+// Returns the row at the given index
+// @param i Row index
 Matrix Matrix::getRow(int i)
 {
     Matrix a = *this;
@@ -527,7 +561,8 @@ Matrix Matrix::getRow(int i)
     }
     return result;
 }
-
+// Returns the column at the given index
+// @param i Column index
 Matrix Matrix::getCol(int i)
 {
     Matrix a = *this;
@@ -538,7 +573,13 @@ Matrix Matrix::getCol(int i)
     }
     return result;
 }
-
+// QR Decomposition
+// Decomposes a matrix into the product of an orthogonal matrix Q and an upper triangular matrix R
+// @param A Matrix to be decomposed
+// @param Q Orthogonal matrix
+// @param R Upper triangular matrix
+// @param n Number of rows in the matrix
+// @param m Number of columns in the matrix
 void Matrix::QRDecomposition(Matrix &A, Matrix &Q, Matrix &R)
 {
     int m = A.cols;
@@ -579,7 +620,7 @@ void Matrix::QRDecomposition(Matrix &A, Matrix &Q, Matrix &R)
 
     Q = Q.transpose();
 }
-
+// Checks if a matrix is a conjugate matrix
 Matrix Matrix::conjugate()
 {
     Matrix a = *this;
@@ -594,7 +635,7 @@ Matrix Matrix::conjugate()
 
     return result;
 }
-
+// Checks if a matrix is Hermitian
 bool Matrix::isHermitian()
 {
     Matrix a = *this;
@@ -605,7 +646,9 @@ bool Matrix::isHermitian()
     Matrix conj = a.conjugate().transpose();
     return equals(a, conj);
 }
-
+// QR Solver
+// Solves a system of linear equations using the QR decomposition
+// @param b Matrix representing the right-hand side of the system of equations
 Matrix Matrix::QRSolver(Matrix &b)
 {
     Matrix a = *this;
@@ -617,6 +660,7 @@ Matrix Matrix::QRSolver(Matrix &b)
     Matrix x = R.backwardSolve(y);
     return x;
 }
+// Checks if a matrix is upper triangular
 bool Matrix::isUpperTriangular()
 {
     Matrix a = *this;
@@ -632,7 +676,7 @@ bool Matrix::isUpperTriangular()
     }
     return true;
 }
-
+// Checks if a matrix is lower triangular
 bool Matrix::isLowerTriangular()
 {
     Matrix a = *this;
@@ -648,7 +692,9 @@ bool Matrix::isLowerTriangular()
     }
     return true;
 }
-
+// Tridiagonal Solver
+// Solves a system of linear equations for a tridiagonal matrix
+// @param b Matrix representing the right-hand side of the system of equations
 Matrix Matrix::tridigonalSolver(Matrix &b)
 {
     Matrix a = *this;
@@ -692,7 +738,11 @@ Matrix Matrix::tridigonalSolver(Matrix &b)
 
     return bCopy;
 }
-
+// Calculates the given rotation matrix for the QR decomposition
+// A given rotation matrix is a matrix that rotates a vector by a given angle
+// Used in the QR decomposition to zero out elements below the diagonal
+// @param i Row index
+// @param j Column index
 Matrix Matrix::calculateGivenRotationMatrix(int i, int j)
 {
     Matrix H = *this;
@@ -715,6 +765,11 @@ Matrix Matrix::calculateGivenRotationMatrix(int i, int j)
     return res;
 }
 
+// Hessenberg QR Decomposition
+// Decomposes a matrix into the product of an orthogonal matrix Q and an upper Hessenberg matrix R
+// @param A Matrix to be decomposed
+// @param Q Orthogonal matrix
+// @param R Upper Hessenberg matrix
 void Matrix::hessenbergQRDecomposition(Matrix &A, Matrix &Q, Matrix &R)
 {
     if (A.getRows() != A.getCols())
@@ -732,7 +787,9 @@ void Matrix::hessenbergQRDecomposition(Matrix &A, Matrix &Q, Matrix &R)
     }
     Matrix s = Q * R;
 }
-
+//Sets the row at the given index
+// @param i Row index
+// @param row Matrix representing the row
 void Matrix::setRow(int i, Matrix &row)
 {
     Matrix a = *this;
@@ -749,7 +806,9 @@ void Matrix::setRow(int i, Matrix &row)
         a.data[i][j] = row.data[0][j];
     }
 }
-
+// Sets the column at the given index
+// @param i Column index
+// @param col Matrix representing the column
 void Matrix::setCol(int i, Matrix &col)
 {
     Matrix a = *this;
@@ -767,7 +826,9 @@ void Matrix::setCol(int i, Matrix &col)
         }
     }
 }
-
+// Hessenberg Solver
+// Solves a system of linear equations for an upper Hessenberg matrix
+// @param b Matrix representing the right-hand side of the system of equations
 Matrix Matrix::hessenbergSolver(Matrix &b)
 {
     Matrix a = *this;
@@ -778,7 +839,9 @@ Matrix Matrix::hessenbergSolver(Matrix &b)
     Matrix x = R.backwardSolve(y);
     return x;
 }
-
+// LU Solver
+// Solves a system of linear equations using the LU decomposition
+// @param b Matrix representing the right-hand side of the system of equations
 Matrix Matrix::LUSolver(Matrix &b)
 {
     Matrix a = *this;
@@ -791,7 +854,7 @@ Matrix Matrix::LUSolver(Matrix &b)
     Matrix x = U.backwardSolve(y);
     return x;
 }
-
+// Checks if a matrix is sparse
 bool Matrix::isSparse()
 {
     Matrix a = *this;
@@ -810,12 +873,13 @@ bool Matrix::isSparse()
     float res = static_cast<float>(count) / (a.getRows() * a.getRows());
     return res < 0.3;
 }
-
+// Checks if a matrix is banded
+// A matrix is banded if all elements outside a diagonal band of given width are zero
 Matrix Matrix::operator==(Matrix &b)
 {
     return equals(*this, b);
 }
-
+// Checks if a matrix is banded
 int Matrix::upperBandwidth()
 {
     Matrix a = *this;
@@ -832,7 +896,7 @@ int Matrix::upperBandwidth()
     }
     return max;
 }
-
+// Checks if a matrix is banded
 int Matrix::lowerBandwidth()
 {
     Matrix a = *this;
@@ -849,7 +913,7 @@ int Matrix::lowerBandwidth()
     }
     return max;
 }
-
+// Checks if a matrix is banded
 float Matrix::bandDensity()
 {
     Matrix a = *this;
@@ -866,7 +930,12 @@ float Matrix::bandDensity()
     }
     return static_cast<float>(count) / (a.getRows() * a.getCols());
 }
-
+// Banded LU Decomposition
+// Decomposes a banded matrix into the product of a lower triangular matrix L and an upper triangular matrix U
+// Decomposes only the band of the matrix
+// @param A Matrix to be decomposed
+// @param L Lower triangular matrix
+// @param U Upper triangular matrix
 void Matrix::bandedDecomposition(Matrix &A, Matrix &L, Matrix &U)
 {
     int upperBandwidth = A.upperBandwidth();
@@ -905,7 +974,7 @@ void Matrix::bandedDecomposition(Matrix &A, Matrix &L, Matrix &U)
         }
     }
 }
-
+// Checks if a matrix has a positive diagonal
 bool Matrix::positiveDiagonal()
 {
     Matrix a = *this;
@@ -918,7 +987,7 @@ bool Matrix::positiveDiagonal()
     }
     return true;
 }
-
+// Checks if a matrix has a negative diagonal
 bool Matrix::negativeDiagonal()
 {
     Matrix a = *this;
@@ -931,7 +1000,9 @@ bool Matrix::negativeDiagonal()
     }
     return true;
 }
-
+// Banded Solver
+// Solves a system of linear equations for a banded matrix
+// @param b Matrix representing the right-hand side of the system of equations
 Matrix Matrix::bandedSolver(Matrix &b)
 {
     Matrix a = *this;
@@ -942,7 +1013,12 @@ Matrix Matrix::bandedSolver(Matrix &b)
     Matrix x = U.backwardSolve(y);
     return x;
 }
-
+// LDLT Decomposition
+// Decomposes a Hermitian matrix into the product of a lower triangular matrix L, a diagonal matrix D, and the conjugate transpose of L
+// @param A Matrix to be decomposed
+// @param L Lower triangular matrix
+// @param D Diagonal matrix
+// @param n Number of rows in the matrix
 void Matrix::LDLTDecomposition(Matrix &A, Matrix &L, Matrix &D)
 {
     if (!A.isHermitian())
@@ -973,7 +1049,9 @@ void Matrix::LDLTDecomposition(Matrix &A, Matrix &L, Matrix &D)
         }
     }
 }
-
+// Diagonal Solver
+// Solves a system of linear equations for a diagonal matrix
+// @param b Matrix representing the right-hand side of the system of equations
 Matrix Matrix::diagonalSolver(Matrix &b)
 {
     Matrix a = *this;
@@ -988,7 +1066,7 @@ Matrix Matrix::diagonalSolver(Matrix &b)
     }
     return x;
 }
-
+// Checks if a matrix is real
 bool Matrix::isReal() {
     Matrix a = *this;
     for (int i = 0; i < a.getRows(); i++) {
@@ -1001,7 +1079,9 @@ bool Matrix::isReal() {
     return true;
 
 }
-
+// LDLT Solver
+// Solves a system of linear equations for a Hermitian matrix using the LDLT decomposition
+// @param b Matrix representing the right-hand side of the system of equations
 Matrix Matrix::LDLTSolver(Matrix &b)
 {
     Matrix a = *this;
@@ -1013,7 +1093,9 @@ Matrix Matrix::LDLTSolver(Matrix &b)
     Matrix x = L.transpose().backwardSolve(z);
     return x;
 }
-
+// Checks if a matrix is diagonal
+// A matrix is diagonal if all elements outside the main diagonal are zero
+// @return True if the matrix is diagonal, false otherwise
 bool Matrix::isDiagonal() {
     Matrix a = *this;
     for (int i = 0; i < a.getRows(); i++) {
@@ -1025,7 +1107,9 @@ bool Matrix::isDiagonal() {
     }
     return true;
 }
-
+// Solves a sparse matrix
+// @param b Matrix representing the right-hand side of the system of equations
+// @return Solution to the system of equations
 Matrix Matrix::operator/=(Matrix &b)
 {
     Matrix a = *this;
