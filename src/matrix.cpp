@@ -989,6 +989,19 @@ Matrix Matrix::diagonalSolver(Matrix &b)
     return x;
 }
 
+bool Matrix::isReal() {
+    Matrix a = *this;
+    for (int i = 0; i < a.getRows(); i++) {
+        for (int j = 0; j < a.getCols(); j++) {
+            if (a.get(i, j).imag() != 0) {
+                return false;
+            }
+        }
+    }
+    return true;
+
+}
+
 Matrix Matrix::LDLTSolver(Matrix &b)
 {
     Matrix a = *this;
@@ -1017,11 +1030,48 @@ Matrix Matrix::operator/=(Matrix &b)
 {
     Matrix a = *this;
     if(a.isSquare()) {
-        if(!a.isSparse()) {
-            return (a\b);
-        }
+        float density = a.bandDensity();
+        if(a.isDiagonal()) {
+            return a.diagonalSolver(b);
+        } else {
+            int upperBandwidth = a.upperBandwidth();
+            int lowerBandwidth = a.lowerBandwidth();
 
+            if(upperBandwidth == 0 && lowerBandwidth == 0) {
+                if(a.isUpperTriangular()) {
+                    return a.backwardSolve(b);
+                } else if(a.isLowerTriangular()) {
+                    return a.forwardSolve(b);
+                }
+            } else {
+                if(density > 0.5 || a.isTriDiagonal()) {
+                    return a.bandedSolver(b);
+                } 
+            }
+
+            if(a.isHermitian()) {
+                if(a.negativeDiagonal() || a.positiveDiagonal()) {
+                    try {
+                        a = a.choleskyDecomp();
+                        return a.backwardSolve(b);
+                    } catch(std::runtime_error e) {
+                        
+                    }
+                }
+                if(a.isReal()) {
+                    return a.LDLTSolver(b);
+                } else {
+                    return a.LUSolver(b);
+                }
+                
+            } else {
+                return a.LUSolver(b);
+
+            }
+        }
+            
     } else {
         return a.QRSolver(b);
     }
+    
 }

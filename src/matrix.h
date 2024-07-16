@@ -69,5 +69,6 @@ public:
     bool positiveDiagonal();
     bool negativeDiagonal();
     bool isDiagonal();
+    bool isReal();
 };
 #endif
