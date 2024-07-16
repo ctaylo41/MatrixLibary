@@ -25,6 +25,7 @@ public:
     Matrix operator*(Matrix &b);
     Matrix operator*(double b);
     Matrix operator/(Matrix &b);
+    Matrix operator/=(Matrix &b);
     Matrix operator==(Matrix &b);
     std::complex<double> get(int i, int j);
     int getRows();
@@ -63,7 +64,10 @@ public:
     static void bandedDecomposition(Matrix &A, Matrix &L, Matrix &U);
     Matrix bandedSolver(Matrix &b);
     static void LDLTDecomposition(Matrix &A, Matrix &L, Matrix &D);
+    Matrix diagonalSolver(Matrix &b);
+    Matrix LDLTSolver(Matrix &b);
     bool positiveDiagonal();
     bool negativeDiagonal();
+    bool isDiagonal();
 };
 #endif

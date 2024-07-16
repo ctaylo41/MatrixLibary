@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include "vector.h"
+#include <cmath>
 
 Matrix::Matrix(int rows, int cols)
 {
@@ -13,7 +14,6 @@ Matrix::Matrix(int rows, int cols)
     {
         data[i].resize(cols);
     }
-
 }
 
 Matrix::Matrix(int n)
@@ -401,6 +401,8 @@ Matrix Matrix::operator*(double b)
     }
     return result;
 }
+
+
 
 Matrix Matrix::operator/(Matrix &b)
 {
@@ -805,7 +807,7 @@ bool Matrix::isSparse()
             }
         }
     }
-    float res =  static_cast<float>(count) / (a.getRows() * a.getRows());
+    float res = static_cast<float>(count) / (a.getRows() * a.getRows());
     return res < 0.3;
 }
 
@@ -848,7 +850,6 @@ int Matrix::lowerBandwidth()
     return max;
 }
 
-
 float Matrix::bandDensity()
 {
     Matrix a = *this;
@@ -866,56 +867,73 @@ float Matrix::bandDensity()
     return static_cast<float>(count) / (a.getRows() * a.getCols());
 }
 
+void Matrix::bandedDecomposition(Matrix &A, Matrix &L, Matrix &U)
+{
+    int upperBandwidth = A.upperBandwidth();
+    int lowerBandwidth = A.lowerBandwidth();
 
-void Matrix::bandedDecomposition(Matrix &A, Matrix &L, Matrix &U) {
-    int upperBandwith = A.upperBandwidth();
-    int lowerBandwith = A.lowerBandwidth();
-
-    if (upperBandwith == 0 && lowerBandwith == 0) {
+    if (upperBandwidth == 0 && lowerBandwidth == 0)
+    {
         throw std::invalid_argument("Matrix is not banded");
     }
 
     L = Matrix(A.getRows());
     U = Matrix(A.getRows());
 
-    for (int i = 0; i < A.getRows(); i++) {
-        for (int j = 0; j < A.getCols(); j++) {
-            if (i - j > upperBandwith || j - i > lowerBandwith) {
-                if (A.get(i, j).real() != 0) {
-                    throw std::invalid_argument("Matrix is not banded");
+    for (int i = 0; i < A.getRows(); i++)
+    {
+        for (int j = std::max(0, i - lowerBandwidth); j <= std::min(A.getCols() - 1, i + upperBandwidth); j++)
+        {
+            if (j < i)
+            {
+                std::complex<double> sum = 0;
+                for (int k = std::max(0, j - lowerBandwidth); k < j; k++)
+                {
+                    sum += L.get(i, k) * U.get(k, j);
                 }
+                L.set(i, j, (A.get(i, j) - sum) / U.get(j, j));
             }
-            if (i - j >= 0) {
-                L.set(i, j, A.get(i, j));
-            }
-            if (j - i >= 0) {
-                U.set(i, j, A.get(i, j));
+            else
+            {
+                std::complex<double> sum = 0;
+                for (int k = std::max(0, i - upperBandwidth); k < i; k++)
+                {
+                    sum += L.get(i, k) * U.get(k, j);
+                }
+                U.set(i, j, A.get(i, j) - sum);
             }
         }
     }
 }
 
-bool Matrix::positiveDiagonal() {
+bool Matrix::positiveDiagonal()
+{
     Matrix a = *this;
-    for (int i = 0; i < a.getRows(); i++) {
-        if (a.get(i, i).real() <= 0) {
+    for (int i = 0; i < a.getRows(); i++)
+    {
+        if (a.get(i, i).real() <= 0)
+        {
             return false;
         }
     }
     return true;
 }
 
-bool Matrix::negativeDiagonal() {
+bool Matrix::negativeDiagonal()
+{
     Matrix a = *this;
-    for (int i = 0; i < a.getRows(); i++) {
-        if (a.get(i, i).real() >= 0) {
+    for (int i = 0; i < a.getRows(); i++)
+    {
+        if (a.get(i, i).real() >= 0)
+        {
             return false;
         }
     }
     return true;
 }
 
-Matrix Matrix::bandedSolver(Matrix &b) {
+Matrix Matrix::bandedSolver(Matrix &b)
+{
     Matrix a = *this;
     Matrix L(a.getRows());
     Matrix U(a.getRows());
@@ -925,25 +943,85 @@ Matrix Matrix::bandedSolver(Matrix &b) {
     return x;
 }
 
-void Matrix::LDLTDecomposition(Matrix &A, Matrix &L, Matrix &D) {
-    if (!A.isHermitian()) {
+void Matrix::LDLTDecomposition(Matrix &A, Matrix &L, Matrix &D)
+{
+    if (!A.isHermitian())
+    {
         throw std::invalid_argument("Matrix is not Hermitian");
     }
 
     L = Matrix(A.getRows());
     D = Matrix(A.getRows());
 
-    for (int i = 0; i < A.getRows(); i++) {
-        for (int j = 0; j <= i; j++) {
+    for (int i = 0; i < A.getRows(); i++)
+    {
+        for (int j = 0; j <= i; j++)
+        {
             std::complex<double> sum = 0;
-            for (int k = 0; k < j; k++) {
+            for (int k = 0; k < j; k++)
+            {
                 sum += L.get(i, k) * D.get(k, k) * std::conj(L.get(j, k));
             }
-            if (i == j) {
+            if (i == j)
+            {
                 D.set(i, i, A.get(i, i) - sum);
-            } else {
+            }
+            else
+            {
                 L.set(i, j, (A.get(i, j) - sum) / D.get(j, j));
             }
         }
+    }
+}
+
+Matrix Matrix::diagonalSolver(Matrix &b)
+{
+    Matrix a = *this;
+    Matrix x(a.rows, b.cols);
+    for (int i = 0; i < a.rows; i++)
+    {
+        if (a.get(i, i).real() == 0)
+        {
+            throw std::invalid_argument("Matrix is singular");
+        }
+        x.set(i, 0, b.get(i, 0) / a.get(i, i));
+    }
+    return x;
+}
+
+Matrix Matrix::LDLTSolver(Matrix &b)
+{
+    Matrix a = *this;
+    Matrix L(a.getRows());
+    Matrix D(a.getRows());
+    Matrix::LDLTDecomposition(a, L, D);
+    Matrix y = L.forwardSolve(b);
+    Matrix z = D.diagonalSolver(y);
+    Matrix x = L.transpose().backwardSolve(z);
+    return x;
+}
+
+bool Matrix::isDiagonal() {
+    Matrix a = *this;
+    for (int i = 0; i < a.getRows(); i++) {
+        for (int j = 0; j < a.getCols(); j++) {
+            if (i != j && a.get(i, j).real() != 0) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+Matrix Matrix::operator/=(Matrix &b)
+{
+    Matrix a = *this;
+    if(a.isSquare()) {
+        if(!a.isSparse()) {
+            return (a\b);
+        }
+
+    } else {
+        return a.QRSolver(b);
     }
 }

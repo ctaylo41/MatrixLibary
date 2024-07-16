@@ -425,14 +425,69 @@ TEST(MatrixTest, bandedDecomposition) {
     Matrix L(a.getRows(),a.getCols());
     Matrix U(a.getRows(),a.getCols());
     Matrix::bandedDecomposition(a,L,U);
-    std::cout << L.toString() << std::endl;
-    std::cout << U.toString() << std::endl;
     Matrix tmp = L * U;
     EXPECT_TRUE(a.equals(a,tmp));
-
 }
 
+TEST(MatrixTest, solveBanded) {
+    std::vector<std::vector<std::complex<double>>> data = {{1,-2,0,0,0},{-2,-1,3,0,0},{0,3,0,-1,0},{0,0,-1,1,4},{0,0,0,4,2}};
+    std::vector<std::vector<std::complex<double>>> bdata = {{1},{2},{3},{4},{5}};
+    Matrix a(data);
+    Matrix b(bdata);
+    Matrix result = a.bandedSolver(b);
+    Matrix tmp = a * result;
+    EXPECT_TRUE(a.equals(tmp,b));
+}
 
+TEST(MatrixTest, positiveDiagonal) {
+    std::vector<std::vector<std::complex<double>>> data = {{1,0,0,0},{0,4,0,0},{0,0,2,0},{0,0,0,3}};
+    Matrix a(data);
+    EXPECT_TRUE(a.positiveDiagonal());
+    std::vector<std::vector<std::complex<double>>> data2 = {{1,0,0,0},{0,-4,0,0},{0,0,2,0},{0,0,0,3}};
+    Matrix a2(data2);
+    EXPECT_FALSE(a2.positiveDiagonal());
+}
+
+TEST(MatrixTest,negativeDiagonal) {
+    std::vector<std::vector<std::complex<double>>> data = {{-1,0,0,0},{0,-4,0,0},{0,0,-2,0},{0,0,0,-3}};
+    Matrix a(data);
+    EXPECT_TRUE(a.negativeDiagonal());
+    std::vector<std::vector<std::complex<double>>> data2 = {{1,0,0,0},{0,-4,0,0},{0,0,2,0},{0,0,0,3}};
+    Matrix a2(data2);
+    EXPECT_FALSE(a2.negativeDiagonal());
+}
+
+TEST(MatrixTest, LDLTDecomposition) {
+    std::vector<std::vector<std::complex<double>>> data = {{1,2,3},{2,5,3},{3,3,6}};
+    Matrix a(data);
+    Matrix L(a.getRows(),a.getCols());
+    Matrix D(a.getRows(),a.getCols());
+    Matrix::LDLTDecomposition(a,L,D);
+    Matrix LT = L.transpose();
+    Matrix tmp = D*LT;
+    Matrix res = L * tmp;
+    EXPECT_TRUE(a.equals(a,res));
+}
+
+TEST(MatrixTest, diagonalSolver) {
+    std::vector<std::vector<std::complex<double>>> data = {{1,0,0,0},{0,4,0,0},{0,0,2,0},{0,0,0,3}};
+    std::vector<std::vector<std::complex<double>>> bdata = {{1},{2},{3},{4}};
+    Matrix a(data);
+    Matrix b(bdata);
+    Matrix result = a.diagonalSolver(b);
+    Matrix tmp = a * result;
+    EXPECT_TRUE(a.equals(tmp,b));
+}
+
+TEST(MatrixTest, LDLTSolver) {
+    std::vector<std::vector<std::complex<double>>> data = {{1,2,3},{2,5,3},{3,3,6}};
+    std::vector<std::vector<std::complex<double>>> bdata = {{1},{2},{3}};
+    Matrix a(data);
+    Matrix b(bdata);
+    Matrix result = a.LDLTSolver(b);
+    Matrix tmp = a * result;
+    EXPECT_TRUE(a.equals(tmp,b));
+}
 int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);
