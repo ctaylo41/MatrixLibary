@@ -867,9 +867,83 @@ float Matrix::bandDensity()
 }
 
 
+void Matrix::bandedDecomposition(Matrix &A, Matrix &L, Matrix &U) {
+    int upperBandwith = A.upperBandwidth();
+    int lowerBandwith = A.lowerBandwidth();
 
+    if (upperBandwith == 0 && lowerBandwith == 0) {
+        throw std::invalid_argument("Matrix is not banded");
+    }
 
-Matrix Matrix::bandedDecomposition(Matrix &L, Matrix &U) {
-    
-    
+    L = Matrix(A.getRows());
+    U = Matrix(A.getRows());
+
+    for (int i = 0; i < A.getRows(); i++) {
+        for (int j = 0; j < A.getCols(); j++) {
+            if (i - j > upperBandwith || j - i > lowerBandwith) {
+                if (A.get(i, j).real() != 0) {
+                    throw std::invalid_argument("Matrix is not banded");
+                }
+            }
+            if (i - j >= 0) {
+                L.set(i, j, A.get(i, j));
+            }
+            if (j - i >= 0) {
+                U.set(i, j, A.get(i, j));
+            }
+        }
+    }
+}
+
+bool Matrix::positiveDiagonal() {
+    Matrix a = *this;
+    for (int i = 0; i < a.getRows(); i++) {
+        if (a.get(i, i).real() <= 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool Matrix::negativeDiagonal() {
+    Matrix a = *this;
+    for (int i = 0; i < a.getRows(); i++) {
+        if (a.get(i, i).real() >= 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+Matrix Matrix::bandedSolver(Matrix &b) {
+    Matrix a = *this;
+    Matrix L(a.getRows());
+    Matrix U(a.getRows());
+    Matrix::bandedDecomposition(a, L, U);
+    Matrix y = L.forwardSolve(b);
+    Matrix x = U.backwardSolve(y);
+    return x;
+}
+
+void Matrix::LDLTDecomposition(Matrix &A, Matrix &L, Matrix &D) {
+    if (!A.isHermitian()) {
+        throw std::invalid_argument("Matrix is not Hermitian");
+    }
+
+    L = Matrix(A.getRows());
+    D = Matrix(A.getRows());
+
+    for (int i = 0; i < A.getRows(); i++) {
+        for (int j = 0; j <= i; j++) {
+            std::complex<double> sum = 0;
+            for (int k = 0; k < j; k++) {
+                sum += L.get(i, k) * D.get(k, k) * std::conj(L.get(j, k));
+            }
+            if (i == j) {
+                D.set(i, i, A.get(i, i) - sum);
+            } else {
+                L.set(i, j, (A.get(i, j) - sum) / D.get(j, j));
+            }
+        }
+    }
 }

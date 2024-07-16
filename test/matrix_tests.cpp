@@ -409,6 +409,30 @@ TEST(MatrixTest, HandlesLowerBandwidth) {
     EXPECT_EQ(a2.lowerBandwidth(),3);
 }
 
+TEST(MatrixTest, HandlesBandDensity) {
+    std::vector<std::vector<std::complex<double>>> data = {{1,4,2,3},{3,4,1,7},{0,2,3,4},{0,0,1,3}};
+    Matrix a(data);
+    
+    EXPECT_FLOAT_EQ(a.bandDensity(),0.8125);
+    std::vector<std::vector<std::complex<double>>> data2 = {{1,0,0,0},{3,4,0,0},{5,2,3,0},{7,0,1,3}};
+    Matrix a2(data2);
+    EXPECT_DOUBLE_EQ(a2.bandDensity(),0.5625);
+}
+
+TEST(MatrixTest, bandedDecomposition) {
+    std::vector<std::vector<std::complex<double>>> data = {{1,-2,0,0,0},{-2,-1,3,0,0},{0,3,0,-1,0},{0,0,-1,1,4},{0,0,0,4,2}};
+    Matrix a(data);
+    Matrix L(a.getRows(),a.getCols());
+    Matrix U(a.getRows(),a.getCols());
+    Matrix::bandedDecomposition(a,L,U);
+    std::cout << L.toString() << std::endl;
+    std::cout << U.toString() << std::endl;
+    Matrix tmp = L * U;
+    EXPECT_TRUE(a.equals(a,tmp));
+
+}
+
+
 int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);

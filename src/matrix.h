@@ -60,6 +60,10 @@ public:
     int upperBandwidth();
     int lowerBandwidth();
     float bandDensity();
-    Matrix bandedDecomposition(Matrix &L, Matrix &U);
+    static void bandedDecomposition(Matrix &A, Matrix &L, Matrix &U);
+    Matrix bandedSolver(Matrix &b);
+    static void LDLTDecomposition(Matrix &A, Matrix &L, Matrix &D);
+    bool positiveDiagonal();
+    bool negativeDiagonal();
 };
 #endif
