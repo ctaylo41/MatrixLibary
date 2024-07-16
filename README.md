@@ -13,6 +13,13 @@ This project aims to replicate MATLAB's right division operator (`/`) functional
 ## Getting Started
 ```bash
 git clone https://github.com/ctaylo41/MatrixLibary
+cd MatrixLibary
+git clone https://github.com/google/googletest
+mkdir build
+cd build
+cmake ..
+cmake --build
+ctest
 ```
 ## How to Use
 This libary uses 2d vectors that take complex doubles(vector<vector<std::complex<double>>>)
@@ -25,6 +32,7 @@ There is also a Vector libary that can be used as well
 ## Testing
 To test library install google test, there are tests written for all methods and functions used in the library.
 
-
+## Full System Pipeline
 ![Full System](images/mldivide_full.png "Full System Pipeline")
+## Sparse System Pipeline
 ![Sparse System](images/mldivide_sparse.png "Sparse System Pipeline") 
